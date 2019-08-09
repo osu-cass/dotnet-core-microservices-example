@@ -7,7 +7,7 @@
     <Name>Deq.Demo.Portal.Db</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{95b34ed4-33a7-4b69-94a0-f0aaf3d601db}</ProjectGuid>
+    <ProjectGuid>{37b4a775-bf44-483f-8e9d-df757105337a}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
@@ -57,5 +57,12 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="dbo" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\department_contact.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Deq.Demo.Portal.Db.refactorlog" />
   </ItemGroup>
 </Project>

@@ -7,7 +7,7 @@
     <Name>Deq.Demo.Contact.Db</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{ade5ac41-308c-41ed-84af-831e485cf54f}</ProjectGuid>
+    <ProjectGuid>{f8109c69-369f-49ee-beb7-5ad4bfb021e8}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
@@ -57,5 +57,12 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="dbo" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\contact.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Deq.Demo.Contact.Db.refactorlog" />
   </ItemGroup>
 </Project>

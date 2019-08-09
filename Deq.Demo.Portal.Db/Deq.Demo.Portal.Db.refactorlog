@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="3f11dc0c-e6b8-433d-85b8-905bf185ca4c" ChangeDateTime="08/07/2019 23:09:08">
+    <Property Name="ElementName" Value="[dbo].[department_contact].[ContactId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[department_contact]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Name" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="f115d9d8-997a-4328-a76f-1c7f80a32f44" ChangeDateTime="08/07/2019 23:09:46">
+    <Property Name="ElementName" Value="[dbo].[department_contact].[Name]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[department_contact]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DepartmentId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="89f9da5a-8c54-4640-bee3-4c0732b52682" ChangeDateTime="08/07/2019 23:09:50">
+    <Property Name="ElementName" Value="[dbo].[department_contact].[DepartmentId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[department_contact]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DepartmentName" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="eb45a699-0ce5-43e2-8e30-208e60a1ff67" ChangeDateTime="08/07/2019 23:09:56">
+    <Property Name="ElementName" Value="[dbo].[department_contact].[ContactNumber]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[department_contact]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DContactNumber" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="50691ea3-a998-4248-8d24-335bbb4118bb" ChangeDateTime="08/07/2019 23:10:06">
+    <Property Name="ElementName" Value="[dbo].[department_contact].[DContactNumber]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[department_contact]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DepartmentContactNumber" />
+  </Operation>
+</Operations>
