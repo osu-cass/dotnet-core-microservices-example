@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Deq.Demo.Dept.Web.Models;
 using System.Net.Http;
+using System.Text;
+using Deq.Demo.Shared;
 
 namespace Deq.Demo.Dept.Web.Controllers
 {
@@ -15,8 +17,9 @@ namespace Deq.Demo.Dept.Web.Controllers
         private readonly DepartmentContext _context;
         private readonly IHttpClientFactory _clientFactory;
 
-        public HomeController(DepartmentContext context)
+        public HomeController(DepartmentContext context, IHttpClientFactory clientFactory)
         {
+            _clientFactory = clientFactory;
             _context = context;
         }
 
@@ -99,6 +102,7 @@ namespace Deq.Demo.Dept.Web.Controllers
             {
                 return NotFound();
             }
+
             return View(department);
         }
 
@@ -121,6 +125,26 @@ namespace Deq.Demo.Dept.Web.Controllers
                 {
                     _context.Update(department);
                     await _context.SaveChangesAsync();
+
+                    ContactMessage message = new ContactMessage()
+                    {
+                        DepartmentId = department.Id.ToString(),
+                        DepartmentName = department.Name
+                    };
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateContactDepartment")
+                    {
+                        Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
+                    };
+                    var client = _clientFactory.CreateClient("contacts");
+                    var response = await client.SendAsync(request);
+
+                    request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateEntryDepartment")
+                    {
+                        Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
+                    };
+                    client = _clientFactory.CreateClient("portal");
+                    response = await client.SendAsync(request);
                 }
                 catch (DbUpdateConcurrencyException)
                 {

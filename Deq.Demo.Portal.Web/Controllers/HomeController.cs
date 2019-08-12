@@ -95,6 +95,21 @@ namespace Deq.Demo.Portal.Web.Controllers
             return new OkResult();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateEntryDepartment([FromBody] ContactMessage jsonPerson)
+        {
+            IEnumerable<DepartmentContact> contactsToUpdate = _context.DepartmentContact.Where(c => c.DepartmentId == Int32.Parse(jsonPerson.DepartmentId));
+            contactsToUpdate.ToList().ForEach(c => c.DepartmentName = jsonPerson.DepartmentName);
+
+            if (ModelState.IsValid)
+            {
+                _context.UpdateRange(contactsToUpdate);
+                await _context.SaveChangesAsync();
+            }
+
+            return new OkResult();
+        }
+
         // POST: Home/Delete/5
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)

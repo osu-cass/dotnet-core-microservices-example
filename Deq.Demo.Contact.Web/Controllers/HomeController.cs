@@ -113,6 +113,20 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(contact);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateContactDepartment([FromBody] ContactMessage jsonPerson)
+        {
+            IEnumerable<Models.Contact> contactsToUpdate = _context.Contact.Where(c => c.DepartmentId == jsonPerson.DepartmentId);
+            contactsToUpdate.ToList().ForEach(i => i.DepartmentName = jsonPerson.DepartmentName);
+            if (ModelState.IsValid)
+            {
+                _context.UpdateRange(contactsToUpdate);
+                await _context.SaveChangesAsync();
+            }
+
+            return new OkResult();
+        }
+
         // POST: Home/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
