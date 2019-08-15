@@ -77,20 +77,22 @@ namespace Deq.Demo.Portal.Web.Controllers
 
         // POST: Home/Update
         [HttpPost]
-        public async Task<IActionResult> Update([FromBody] ContactMessage jsonPerson)
+        public async Task<IActionResult> Update([FromBody] ContactMessage[] jsonPeople)
         {
-            var departmentContact = _context.DepartmentContact.Where(e => e.ContactId == jsonPerson.Id).First();
-            departmentContact.ContactId = jsonPerson.Id;
-            departmentContact.ContactName = jsonPerson.Name;
-            departmentContact.DepartmentId = Int32.Parse(jsonPerson.DepartmentId);
-            departmentContact.DepartmentName = jsonPerson.DepartmentName;
-            departmentContact.LastUpdated = DateTime.Now;
+            var departmentContacts = await _context.DepartmentContact.ToListAsync();
 
-            if (ModelState.IsValid)
+            foreach (var p in jsonPeople)
             {
-                _context.Update(departmentContact);
-                await _context.SaveChangesAsync();
+                var departmentContact = departmentContacts.Where(c => c.ContactId == p.Id).First();
+                departmentContact.ContactId = p.Id;
+                departmentContact.ContactName = p.Name;
+                departmentContact.DepartmentId = Int32.Parse(p.DepartmentId);
+                departmentContact.DepartmentName = p.DepartmentName;
+                departmentContact.LastUpdated = DateTime.Now;
             }
+
+            _context.UpdateRange(departmentContacts);
+            await _context.SaveChangesAsync();
 
             return new OkResult();
         }

@@ -9,6 +9,7 @@ using Deq.Demo.Dept.Web.Models;
 using System.Net.Http;
 using System.Text;
 using Deq.Demo.Shared;
+using Microsoft.AspNetCore.Routing;
 
 namespace Deq.Demo.Dept.Web.Controllers
 {
@@ -27,6 +28,33 @@ namespace Deq.Demo.Dept.Web.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Department.ToListAsync());
+        }
+
+        // GET: Home
+        public async Task<IActionResult> ReassignContacts(int id)
+        {
+            return View(id);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReassignContacts(int id, int newId)
+        {
+            string newName = (await _context.Department.FirstOrDefaultAsync(m => m.Id == newId)).Name;
+            var data = new RouteValueDictionary(new { newId, newName })
+                .Select(k => new KeyValuePair<string, string>(k.Key, k.Value?.ToString()));
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"Home/ReassignContacts/{id}")
+            {
+                Content = new FormUrlEncodedContent(data)
+            };
+            HttpClient client = _clientFactory.CreateClient("contacts");
+            var response = await client.SendAsync(request);
+
+            var department = await _context.Department.FindAsync(id);
+            _context.Department.Remove(department);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Home/Details/5
@@ -185,10 +213,21 @@ namespace Deq.Demo.Dept.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var department = await _context.Department.FindAsync(id);
-            _context.Department.Remove(department);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAssociatedContactsLength/{id}");
+            var client = _clientFactory.CreateClient("contacts");
+            var response = await client.SendAsync(request);
+            int associatedContactsLength = Int32.Parse(await response.Content.ReadAsStringAsync());
+
+            if(associatedContactsLength == 0)
+            {
+                var department = await _context.Department.FindAsync(id);
+                _context.Department.Remove(department);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            } else
+            {
+                return RedirectToAction(nameof(ReassignContacts), new { id });
+            }
         }
 
         private bool DepartmentExists(int id)

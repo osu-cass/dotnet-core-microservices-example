@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "ReassignContacts";
+}
+
+<h1>ReassignContacts</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="ReassignContacts">
+            <div class="form-group">
+                <input name="newId" /> <br />
+                <input type="submit" value="Reassign" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Cancel</a>
+</div>
