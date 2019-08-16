@@ -54,6 +54,18 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View();
         }
 
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(await _context.Contact.Select(c => 
+            new ContactMessage
+            {
+                Id = c.Id,
+                Name = c.Name,
+                DepartmentId = c.DepartmentId,
+                DepartmentName = c.DepartmentName
+            }).ToArrayAsync()));
+        }
+
         // POST: Home/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -63,12 +75,16 @@ namespace Deq.Demo.Contact.Web.Controllers
         {
             contact.LastUpdated = DateTime.Now;
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
-
-            var client = _clientFactory.CreateClient("departments");
-
-            var response = await client.SendAsync(request);
-            contact.DepartmentName = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
+                var client = _clientFactory.CreateClient("departments");
+                var response = await client.SendAsync(request);
+                contact.DepartmentName = await response.Content.ReadAsStringAsync();
+            } catch (Exception)
+            {
+                contact.DepartmentName = "Unknown Department";
+            }
 
             if (ModelState.IsValid)
             {
@@ -81,14 +97,17 @@ namespace Deq.Demo.Contact.Web.Controllers
                     DepartmentName = contact.DepartmentName
                 };
 
-                request = new HttpRequestMessage(HttpMethod.Post, $"Home/Create")
+                try {
+                    var request = new HttpRequestMessage(HttpMethod.Post, $"Home/Create")
+                    {
+                        Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
+                    };
+                    var client = _clientFactory.CreateClient("portal");
+                    var response = await client.SendAsync(request);
+                } catch (Exception)
                 {
-                    Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
-                };
-
-                client = _clientFactory.CreateClient("portal");
-
-                response = await client.SendAsync(request);
+                    // Log
+                }
 
                 _context.Add(contact);
                 await _context.SaveChangesAsync();

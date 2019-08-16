@@ -16,8 +16,9 @@ namespace Deq.Demo.Portal.Web.Controllers
         private readonly DepartmentContactContext _context;
         private readonly IHttpClientFactory _clientFactory;
 
-        public HomeController(DepartmentContactContext context)
+        public HomeController(DepartmentContactContext context, IHttpClientFactory clientFactory)
         {
+            _clientFactory = clientFactory;
             _context = context;
         }
 
@@ -43,6 +44,41 @@ namespace Deq.Demo.Portal.Web.Controllers
             }
 
             return View(departmentContact);
+        }
+
+        public async Task<IActionResult> RefreshDataCheck()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> RefreshData()
+        {
+            _context.DepartmentContact.RemoveRange(_context.DepartmentContact);
+            await _context.SaveChangesAsync();
+
+            List<DepartmentContact> departmentContacts = new List<DepartmentContact>();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAll");
+            var client = _clientFactory.CreateClient("contacts");
+            var response = await client.SendAsync(request);
+            ContactMessage[] contacts = Newtonsoft.Json.JsonConvert.DeserializeObject<ContactMessage[]>(await response.Content.ReadAsStringAsync());
+
+            for(int i = 0; i < contacts.Length; i++)
+            {
+                departmentContacts.Add(new DepartmentContact {
+                    Id = i,
+                    DepartmentId = Int32.Parse(contacts[i].DepartmentId),
+                    DepartmentName = contacts[i].DepartmentName,
+                    ContactId = contacts[i].Id,
+                    ContactName = contacts[i].Name,
+                    LastUpdated = DateTime.Now
+                });
+            }
+
+            _context.AddRange(departmentContacts);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Home/Create
