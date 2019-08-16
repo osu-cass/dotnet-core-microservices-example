@@ -39,7 +39,7 @@ namespace Deq.Demo.Dept.Web
                 (Configuration.GetConnectionString("Contact"), Configuration.GetConnectionString("Department"), Configuration.GetConnectionString("Portal")));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            var connection = @"Server=(localdb)\mssqllocaldb;Database=deqdemodepartment;Trusted_Connection=True;ConnectRetryCount=0";
+            string connection = @"Server=(localdb)\mssqllocaldb;Database=deqdemodepartment;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<DepartmentContext>(options => options.UseSqlServer(connection));
 
             // Register the Swagger generator, defining 1 or more Swagger documents

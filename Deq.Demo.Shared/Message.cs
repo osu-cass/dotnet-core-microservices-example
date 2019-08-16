@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Deq.Demo.Shared
 {
-    public class ContactMessage
+    public class Message
     {
         public int Id { get; set; }
         public string Name { get; set; }

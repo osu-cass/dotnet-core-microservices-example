@@ -30,34 +30,35 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(await _context.Department.ToListAsync());
         }
 
-        // GET: Home
+        // GET: Home/ReassignContacts/{id:int}
         public async Task<IActionResult> ReassignContacts(int id)
         {
             return View(id);
         }
 
+        // POST: Home/ReassignContacts/{id:int}/{newId:int}
         [HttpPost]
         public async Task<IActionResult> ReassignContacts(int id, int newId)
         {
             string newName = (await _context.Department.FirstOrDefaultAsync(m => m.Id == newId)).Name;
-            var data = new RouteValueDictionary(new { newId, newName })
+            IEnumerable<KeyValuePair<string, string>> data = new RouteValueDictionary(new { newId, newName })
                 .Select(k => new KeyValuePair<string, string>(k.Key, k.Value?.ToString()));
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"Home/ReassignContacts/{id}")
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/ReassignContacts/{id}")
             {
                 Content = new FormUrlEncodedContent(data)
             };
             HttpClient client = _clientFactory.CreateClient("contacts");
-            var response = await client.SendAsync(request);
+            HttpResponseMessage response = await client.SendAsync(request);
 
-            var department = await _context.Department.FindAsync(id);
+            Department department = await _context.Department.FindAsync(id);
             _context.Department.Remove(department);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Home/Details/5
+        // GET: Home/Details/{id:int?}
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -65,7 +66,7 @@ namespace Deq.Demo.Dept.Web.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Department
+            Department department = await _context.Department
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (department == null)
             {
@@ -75,6 +76,7 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(department);
         }
 
+        // GET: Home/GetDepartmentName/{id:int?}
         public async Task<IActionResult> GetDepartmentName(int? id)
         {
             if (id == null)
@@ -82,14 +84,14 @@ namespace Deq.Demo.Dept.Web.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Department
+            Department department = await _context.Department
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (department == null)
             {
                 return NotFound();
             }
 
-            return new OkObjectResult(department.Name);
+            return Ok(department.Name);
         }
 
         // GET: Home/Create
@@ -98,9 +100,18 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View();
         }
 
+        // GET: Home/GetAll
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(await _context.Department.Select(d =>
+            new Message
+            {
+                DepartmentId = d.Id.ToString(),
+                DepartmentName = d.Name
+            }).ToArrayAsync()));
+        }
+
         // POST: Home/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,ContactNumber")] Department department)
@@ -116,7 +127,7 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(department);
         }
 
-        // GET: Home/Edit/5
+        // GET: Home/Edit/{id:int?}
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -124,7 +135,7 @@ namespace Deq.Demo.Dept.Web.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Department.FindAsync(id);
+            Department department = await _context.Department.FindAsync(id);
             if (department == null)
             {
                 return NotFound();
@@ -133,9 +144,7 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(department);
         }
 
-        // POST: Home/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Home/Edit/{id:int?}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ContactNumber")] Department department)
@@ -153,25 +162,31 @@ namespace Deq.Demo.Dept.Web.Controllers
                     _context.Update(department);
                     await _context.SaveChangesAsync();
 
-                    ContactMessage message = new ContactMessage()
+                    Message message = new Message()
                     {
                         DepartmentId = department.Id.ToString(),
                         DepartmentName = department.Name
                     };
 
-                    var request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateContactDepartment")
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateContactDepartment")
                     {
                         Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
                     };
-                    var client = _clientFactory.CreateClient("contacts");
-                    var response = await client.SendAsync(request);
+                    HttpClient client = _clientFactory.CreateClient("contacts");
+                    HttpResponseMessage response = await client.SendAsync(request);
 
-                    request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateEntryDepartment")
+                    try
                     {
-                        Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
-                    };
-                    client = _clientFactory.CreateClient("portal");
-                    response = await client.SendAsync(request);
+                        request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateEntryDepartment")
+                        {
+                            Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
+                        };
+                        client = _clientFactory.CreateClient("portal");
+                        response = await client.SendAsync(request);
+                    } catch (Exception)
+                    {
+                        //Log
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -189,7 +204,7 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(department);
         }
 
-        // GET: Home/Delete/5
+        // GET: Home/Delete/{id:int?}
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -197,7 +212,7 @@ namespace Deq.Demo.Dept.Web.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Department
+            Department department = await _context.Department
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (department == null)
             {
@@ -207,18 +222,19 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(department);
         }
 
+        // POST: Home/DeleteConfirmed/{id:int}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAssociatedContactsLength/{id}");
-            var client = _clientFactory.CreateClient("contacts");
-            var response = await client.SendAsync(request);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAssociatedContactsLength/{id}");
+            HttpClient client = _clientFactory.CreateClient("contacts");
+            HttpResponseMessage response = await client.SendAsync(request);
             int associatedContactsLength = Int32.Parse(await response.Content.ReadAsStringAsync());
 
             if(associatedContactsLength == 0)
             {
-                var department = await _context.Department.FindAsync(id);
+                Department department = await _context.Department.FindAsync(id);
                 _context.Department.Remove(department);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -228,6 +244,7 @@ namespace Deq.Demo.Dept.Web.Controllers
             }
         }
 
+        // Internal function for checking if a department exists
         private bool DepartmentExists(int id)
         {
             return _context.Department.Any(e => e.Id == id);

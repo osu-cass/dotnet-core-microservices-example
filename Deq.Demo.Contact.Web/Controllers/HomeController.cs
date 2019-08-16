@@ -30,7 +30,7 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(await _context.Contact.ToListAsync());
         }
 
-        // GET: Home/Details/5
+        // GET: Home/Details
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -38,7 +38,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contact
+            Models.Contact contact = await _context.Contact
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (contact == null)
             {
@@ -54,10 +54,11 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View();
         }
 
+        // GET: Home/GetAll
         public async Task<IActionResult> GetAll()
         {
             return Ok(Newtonsoft.Json.JsonConvert.SerializeObject(await _context.Contact.Select(c => 
-            new ContactMessage
+            new Message
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -67,8 +68,6 @@ namespace Deq.Demo.Contact.Web.Controllers
         }
 
         // POST: Home/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,ContactNumber,DateOfBirth,DepartmentId")] Models.Contact contact)
@@ -77,9 +76,9 @@ namespace Deq.Demo.Contact.Web.Controllers
 
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
-                var client = _clientFactory.CreateClient("departments");
-                var response = await client.SendAsync(request);
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
+                HttpClient client = _clientFactory.CreateClient("departments");
+                HttpResponseMessage response = await client.SendAsync(request);
                 contact.DepartmentName = await response.Content.ReadAsStringAsync();
             } catch (Exception)
             {
@@ -88,7 +87,7 @@ namespace Deq.Demo.Contact.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                ContactMessage message = new ContactMessage
+                Message message = new Message
                 {
                     ContactNumber = contact.ContactNumber,
                     Name = contact.Name,
@@ -98,12 +97,12 @@ namespace Deq.Demo.Contact.Web.Controllers
                 };
 
                 try {
-                    var request = new HttpRequestMessage(HttpMethod.Post, $"Home/Create")
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/Create")
                     {
                         Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
                     };
-                    var client = _clientFactory.CreateClient("portal");
-                    var response = await client.SendAsync(request);
+                    HttpClient client = _clientFactory.CreateClient("portal");
+                    HttpResponseMessage response = await client.SendAsync(request);
                 } catch (Exception)
                 {
                     // Log
@@ -117,7 +116,7 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(contact);
         }
 
-        // GET: Home/Edit/5
+        // GET: Home/Edit/id:int
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -125,7 +124,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contact.FindAsync(id);
+            Models.Contact contact = await _context.Contact.FindAsync(id);
             if (contact == null)
             {
                 return NotFound();
@@ -133,8 +132,9 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(contact);
         }
 
+        // POST: Home/UpdateContactDepartment
         [HttpPost]
-        public async Task<IActionResult> UpdateContactDepartment([FromBody] ContactMessage jsonPerson)
+        public async Task<IActionResult> UpdateContactDepartment([FromBody] Message jsonPerson)
         {
             IEnumerable<Models.Contact> contactsToUpdate = _context.Contact.Where(c => c.DepartmentId == jsonPerson.DepartmentId);
             contactsToUpdate.ToList().ForEach(i => i.DepartmentName = jsonPerson.DepartmentName);
@@ -144,9 +144,10 @@ namespace Deq.Demo.Contact.Web.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return new OkResult();
+            return Ok();
         }
 
+        // POST: Home/ReassignContacts/{id:int}
         [HttpPost]
         public async Task<IActionResult> ReassignContacts(int id, [FromForm] string newId, [FromForm] string newName)
         {
@@ -159,13 +160,14 @@ namespace Deq.Demo.Contact.Web.Controllers
             return await EditList(contactsToUpdate.Select(c => (c.Id, c)));
         }
 
+        // POST: Home/Edit/{id:int}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Models.Contact contact)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
-            var client = _clientFactory.CreateClient("departments");
-            var response = await client.SendAsync(request);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
+            HttpClient client = _clientFactory.CreateClient("departments");
+            HttpResponseMessage response = await client.SendAsync(request);
             contact.DepartmentName = await response.Content.ReadAsStringAsync();
             contact.LastUpdated = DateTime.Now;
 
@@ -184,11 +186,12 @@ namespace Deq.Demo.Contact.Web.Controllers
             }
         }
 
+        // POST: Home/EditList/{id:int}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditList(IEnumerable<(int id, Models.Contact contact)> contactList)
         {
-            foreach (var (id, contact) in contactList)
+            foreach ((int id, Models.Contact contact) in contactList)
             {
                 if (id != contact.Id)
                 {
@@ -198,7 +201,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                 contact.LastUpdated = DateTime.Now;
             }
 
-            var messageList = contactList.Select(c => new ContactMessage
+            Message[] messageList = contactList.Select(c => new Message
             {
                 ContactNumber = c.contact.ContactNumber,
                 Name = c.contact.Name,
@@ -207,12 +210,18 @@ namespace Deq.Demo.Contact.Web.Controllers
                 DepartmentName = c.contact.DepartmentName
             }).ToArray();
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"Home/Update")
+            try
             {
-                Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(messageList), Encoding.UTF8, "application/json")
-            };
-            var client = _clientFactory.CreateClient("portal");
-            var response = await client.SendAsync(request);
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/Update")
+                {
+                    Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(messageList), Encoding.UTF8, "application/json")
+                };
+                HttpClient client = _clientFactory.CreateClient("portal");
+                HttpResponseMessage response = await client.SendAsync(request);
+            } catch (Exception)
+            {
+                //Log
+            }
 
             _context.UpdateRange(contactList.Select(c => c.contact));
             await _context.SaveChangesAsync();
@@ -220,12 +229,13 @@ namespace Deq.Demo.Contact.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Home/GetAssociatedContactsLength/{id:int}
         public async Task<IActionResult> GetAssociatedContactsLength(int id)
         {
-            return new OkObjectResult((await _context.Contact.Where(c => c.DepartmentId == id.ToString()).ToListAsync()).Count());
+            return Ok((await _context.Contact.Where(c => c.DepartmentId == id.ToString()).ToListAsync()).Count());
         }
 
-        // GET: Home/Delete/5
+        // GET: Home/Delete/{id:int?}
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -233,7 +243,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contact
+            Models.Contact contact = await _context.Contact
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (contact == null)
             {
@@ -243,24 +253,26 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(contact);
         }
 
+        // POST: Home/Delete/{id:int}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var contact = await _context.Contact.FindAsync(id);
+            Models.Contact contact = await _context.Contact.FindAsync(id);
             _context.Contact.Remove(contact);
             await _context.SaveChangesAsync();
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"Home/Delete/{contact.Id}");
-            var client = _clientFactory.CreateClient("portal");
-            var response = await client.SendAsync(request);
+            try
+            {
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/Delete/{contact.Id}");
+                HttpClient client = _clientFactory.CreateClient("portal");
+                HttpResponseMessage response = await client.SendAsync(request);
+            } catch (Exception)
+            {
+                //Log
+            }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ContactExists(int id)
-        {
-            return _context.Contact.Any(e => e.Id == id);
         }
     }
 }

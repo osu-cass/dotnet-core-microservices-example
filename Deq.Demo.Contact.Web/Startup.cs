@@ -35,7 +35,7 @@ namespace Deq.Demo.Contact.Web
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            var connection = @"Server=(localdb)\mssqllocaldb;Database=deqdemocontact;Trusted_Connection=True;ConnectRetryCount=0";
+            string connection = @"Server=(localdb)\mssqllocaldb;Database=deqdemocontact;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<ContactContext>(options => options.UseSqlServer(connection));
 
             // Register the Swagger generator, defining 1 or more Swagger documents

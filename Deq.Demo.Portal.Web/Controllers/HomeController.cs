@@ -28,7 +28,7 @@ namespace Deq.Demo.Portal.Web.Controllers
             return View(await _context.DepartmentContact.ToListAsync());
         }
 
-        // GET: Home/Details/5
+        // GET: Home/Details/{id:int?}
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -36,7 +36,7 @@ namespace Deq.Demo.Portal.Web.Controllers
                 return NotFound();
             }
 
-            var departmentContact = await _context.DepartmentContact
+            DepartmentContact departmentContact = await _context.DepartmentContact
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (departmentContact == null)
             {
@@ -46,11 +46,13 @@ namespace Deq.Demo.Portal.Web.Controllers
             return View(departmentContact);
         }
 
+        // GET: Home/RefreshDataCheck
         public async Task<IActionResult> RefreshDataCheck()
         {
             return View();
         }
 
+        // GET: Home/RefreshData
         public async Task<IActionResult> RefreshData()
         {
             _context.DepartmentContact.RemoveRange(_context.DepartmentContact);
@@ -58,17 +60,43 @@ namespace Deq.Demo.Portal.Web.Controllers
 
             List<DepartmentContact> departmentContacts = new List<DepartmentContact>();
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAll");
-            var client = _clientFactory.CreateClient("contacts");
-            var response = await client.SendAsync(request);
-            ContactMessage[] contacts = Newtonsoft.Json.JsonConvert.DeserializeObject<ContactMessage[]>(await response.Content.ReadAsStringAsync());
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAll");
+            HttpClient client = _clientFactory.CreateClient("contacts");
+            HttpResponseMessage response = await client.SendAsync(request);
+            Message[] contacts = Newtonsoft.Json.JsonConvert.DeserializeObject<Message[]>(await response.Content.ReadAsStringAsync());
 
-            for(int i = 0; i < contacts.Length; i++)
+            Message[] departments = null;
+            try
             {
-                departmentContacts.Add(new DepartmentContact {
+                request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetAll");
+                client = _clientFactory.CreateClient("departments");
+                response = await client.SendAsync(request);
+                departments = Newtonsoft.Json.JsonConvert.DeserializeObject<Message[]>(await response.Content.ReadAsStringAsync());
+            } catch (Exception)
+            {
+                // Log
+            }
+
+            for (int i = 0; i < contacts.Length; i++)
+            {
+                Message matchingDepartment = null;
+
+                if (departments != null)
+                {
+                    try
+                    {
+                        matchingDepartment = departments.Where(d => d.DepartmentId == contacts[i].DepartmentId).First();
+                    } catch (Exception)
+                    {
+                        //Log
+                    }
+                }
+
+                departmentContacts.Add(new DepartmentContact
+                {
                     Id = i,
-                    DepartmentId = Int32.Parse(contacts[i].DepartmentId),
-                    DepartmentName = contacts[i].DepartmentName,
+                    DepartmentId = Int32.Parse(matchingDepartment != null ? matchingDepartment.DepartmentId : contacts[i].DepartmentId),
+                    DepartmentName = matchingDepartment != null ? matchingDepartment.DepartmentName : "Unknown Department",
                     ContactId = contacts[i].Id,
                     ContactName = contacts[i].Name,
                     LastUpdated = DateTime.Now
@@ -87,10 +115,11 @@ namespace Deq.Demo.Portal.Web.Controllers
             return View();
         }
 
+        // POST: Home/Create
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ContactMessage jsonPerson)
+        public async Task<IActionResult> Create([FromBody] Message jsonPerson)
         {
-            var departmentContacts = await _context.DepartmentContact.ToListAsync();
+            List<DepartmentContact> departmentContacts = await _context.DepartmentContact.ToListAsync();
             DepartmentContact departmentContact = new DepartmentContact
             {
                 Id = departmentContacts.Count,
@@ -107,17 +136,18 @@ namespace Deq.Demo.Portal.Web.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return new OkResult();
+            return Ok();
         }
 
+        // POST: Home/Update
         [HttpPost]
-        public async Task<IActionResult> Update([FromBody] ContactMessage[] jsonPeople)
+        public async Task<IActionResult> Update([FromBody] Message[] jsonPeople)
         {
-            var departmentContacts = await _context.DepartmentContact.ToListAsync();
+            List<DepartmentContact> departmentContacts = await _context.DepartmentContact.ToListAsync();
 
-            foreach (var p in jsonPeople)
+            foreach (Message p in jsonPeople)
             {
-                var departmentContact = departmentContacts.Where(c => c.ContactId == p.Id).First();
+                DepartmentContact departmentContact = departmentContacts.Where(c => c.ContactId == p.Id).First();
                 departmentContact.ContactId = p.Id;
                 departmentContact.ContactName = p.Name;
                 departmentContact.DepartmentId = Int32.Parse(p.DepartmentId);
@@ -128,11 +158,12 @@ namespace Deq.Demo.Portal.Web.Controllers
             _context.UpdateRange(departmentContacts);
             await _context.SaveChangesAsync();
 
-            return new OkResult();
+            return Ok();
         }
 
+        // POST: Home/UpdateEntryDepartment
         [HttpPost]
-        public async Task<IActionResult> UpdateEntryDepartment([FromBody] ContactMessage jsonPerson)
+        public async Task<IActionResult> UpdateEntryDepartment([FromBody] Message jsonPerson)
         {
             IEnumerable<DepartmentContact> contactsToUpdate = _context.DepartmentContact.Where(c => c.DepartmentId == Int32.Parse(jsonPerson.DepartmentId));
             contactsToUpdate.ToList().ForEach(c => c.DepartmentName = jsonPerson.DepartmentName);
@@ -143,21 +174,17 @@ namespace Deq.Demo.Portal.Web.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return new OkResult();
+            return Ok();
         }
 
+        // POST: Home/DeleteConfirmed
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var departmentContact = _context.DepartmentContact.Where(e => e.ContactId == id).First();
+            DepartmentContact departmentContact = _context.DepartmentContact.Where(e => e.ContactId == id).First();
             _context.DepartmentContact.Remove(departmentContact);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool DepartmentContactExists(int id)
-        {
-            return _context.DepartmentContact.Any(e => e.Id == id);
         }
     }
 }
