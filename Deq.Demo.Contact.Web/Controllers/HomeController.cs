@@ -133,6 +133,8 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(contact);
         }
 
+        [Route("/Home/UpdateContactDepartment")]
+        [ProducesResponseType(200)]
         [HttpPost]
         public async Task<IActionResult> UpdateContactDepartment([FromBody] ContactMessage jsonPerson)
         {
@@ -147,6 +149,8 @@ namespace Deq.Demo.Contact.Web.Controllers
             return new OkResult();
         }
 
+        [Route("/Home/ReassignContacts")]
+        [ProducesResponseType(302)]
         [HttpPost]
         public async Task<IActionResult> ReassignContacts(int id, [FromForm] string newId, [FromForm] string newName)
         {
@@ -159,6 +163,8 @@ namespace Deq.Demo.Contact.Web.Controllers
             return await EditList(contactsToUpdate.Select(c => (c.Id, c)));
         }
 
+        [Route("/Home/Edit")]
+        [ProducesResponseType(302)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Models.Contact contact)
@@ -187,6 +193,8 @@ namespace Deq.Demo.Contact.Web.Controllers
         // POST: Home/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Route("/Home/EditList")]
+        [ProducesResponseType(302)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditList(IEnumerable<(int id, Models.Contact contact)> contactList)
@@ -248,6 +256,8 @@ namespace Deq.Demo.Contact.Web.Controllers
 
 
         // POST: Home/Delete/5
+        [Route("/Home/Delete")]
+        [ProducesResponseType(302)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

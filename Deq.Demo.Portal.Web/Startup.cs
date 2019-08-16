@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Deq.Demo.Portal.Web.Models;
 using Deq.Demo.Shared;
+using Microsoft.OpenApi.Models;
 
 namespace Deq.Demo.Portal.Web
 {
@@ -40,6 +41,12 @@ namespace Deq.Demo.Portal.Web
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             var connection = @"Server=(localdb)\mssqllocaldb;Database=deqdemodepartmentcontact;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<DepartmentContactContext>(options => options.UseSqlServer(connection));
+
+            // Register the Swagger generator, defining 1 or more Swagger documents
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Portal API", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +66,17 @@ namespace Deq.Demo.Portal.Web
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
+
 
             app.UseMvc(routes =>
             {

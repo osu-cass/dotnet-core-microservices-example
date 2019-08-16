@@ -36,6 +36,8 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(id);
         }
 
+        [Route("/Home/ReassignContacts")]
+        [ProducesResponseType(302)]
         [HttpPost]
         public async Task<IActionResult> ReassignContacts(int id, int newId)
         {
@@ -75,7 +77,6 @@ namespace Deq.Demo.Dept.Web.Controllers
             return View(department);
         }
 
-        // GET: Home/GetDepartmentName/id
         public async Task<IActionResult> GetDepartmentName(int? id)
         {
             if (id == null)
@@ -209,6 +210,8 @@ namespace Deq.Demo.Dept.Web.Controllers
         }
 
         // POST: Home/Delete/5
+        [Route("/Home/DeleteConfirmed")]
+        [ProducesResponseType(302)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
