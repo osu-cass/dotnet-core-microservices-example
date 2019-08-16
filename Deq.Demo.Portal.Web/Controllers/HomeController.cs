@@ -87,9 +87,6 @@ namespace Deq.Demo.Portal.Web.Controllers
             return View();
         }
 
-        // POST: Home/SetPerson
-        [Route("/Home/Create")]
-        [ProducesResponseType(200)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ContactMessage jsonPerson)
         {
@@ -113,9 +110,6 @@ namespace Deq.Demo.Portal.Web.Controllers
             return new OkResult();
         }
 
-        // POST: Home/Update
-        [Route("/Home/Update")]
-        [ProducesResponseType(200)]
         [HttpPost]
         public async Task<IActionResult> Update([FromBody] ContactMessage[] jsonPeople)
         {
@@ -137,8 +131,6 @@ namespace Deq.Demo.Portal.Web.Controllers
             return new OkResult();
         }
 
-        [Route("/Home/UpdateEntryDepartment")]
-        [ProducesResponseType(200)]
         [HttpPost]
         public async Task<IActionResult> UpdateEntryDepartment([FromBody] ContactMessage jsonPerson)
         {
@@ -154,8 +146,6 @@ namespace Deq.Demo.Portal.Web.Controllers
             return new OkResult();
         }
 
-        [Route("/Home/DeleteConfirmed")]
-        [ProducesResponseType(302)]
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
