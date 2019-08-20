@@ -168,21 +168,14 @@ namespace Deq.Demo.Dept.Web.Controllers
                         DepartmentName = department.Name
                     };
 
-                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateContactDepartment")
-                    {
-                        Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
-                    };
-                    HttpClient client = _clientFactory.CreateClient("contacts");
-                    HttpResponseMessage response = await client.SendAsync(request);
-
                     try
                     {
-                        request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateEntryDepartment")
+                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateEntryDepartment")
                         {
                             Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
                         };
-                        client = _clientFactory.CreateClient("portal");
-                        response = await client.SendAsync(request);
+                        HttpClient client = _clientFactory.CreateClient("portal");
+                        HttpResponseMessage response = await client.SendAsync(request);
                     } catch (Exception)
                     {
                         //Log

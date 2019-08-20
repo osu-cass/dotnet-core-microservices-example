@@ -12,7 +12,6 @@ namespace Deq.Demo.Contact.Web.Models
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}")]
         public DateTime DateOfBirth { get; set; }
         public string DepartmentId { get; set; }
-        public string DepartmentName { get; set; }
         public DateTime LastUpdated { get; set;  }
     }
 }

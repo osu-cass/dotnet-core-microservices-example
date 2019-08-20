@@ -46,10 +46,6 @@ namespace Deq.Demo.Contact.Web.Models
                     .IsRequired()
                     .IsUnicode(false);
 
-                entity.Property(e => e.DepartmentName)
-                    .IsRequired()
-                    .IsUnicode(false);
-
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .IsUnicode(false);

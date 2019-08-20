@@ -5,6 +5,5 @@
 	[ContactNumber] VARCHAR(MAX) NOT NULL, 
     [DateOfBirth] DATETIME NOT NULL, 
     [DepartmentId] VARCHAR(MAX) NOT NULL,
-	[DepartmentName] VARCHAR(MAX) NOT NULL,
     [LastUpdated] DATETIME2 NOT NULL
 )

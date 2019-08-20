@@ -62,8 +62,7 @@ namespace Deq.Demo.Contact.Web.Controllers
             {
                 Id = c.Id,
                 Name = c.Name,
-                DepartmentId = c.DepartmentId,
-                DepartmentName = c.DepartmentName
+                DepartmentId = c.DepartmentId
             }).ToArrayAsync()));
         }
 
@@ -74,17 +73,6 @@ namespace Deq.Demo.Contact.Web.Controllers
         {
             contact.LastUpdated = DateTime.Now;
 
-            try
-            {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
-                HttpClient client = _clientFactory.CreateClient("departments");
-                HttpResponseMessage response = await client.SendAsync(request);
-                contact.DepartmentName = await response.Content.ReadAsStringAsync();
-            } catch (Exception)
-            {
-                contact.DepartmentName = "Unknown Department";
-            }
-
             if (ModelState.IsValid)
             {
                 Message message = new Message
@@ -92,8 +80,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                     ContactNumber = contact.ContactNumber,
                     Name = contact.Name,
                     Id = contact.Id,
-                    DepartmentId = contact.DepartmentId,
-                    DepartmentName = contact.DepartmentName
+                    DepartmentId = contact.DepartmentId
                 };
 
                 try {
@@ -132,21 +119,6 @@ namespace Deq.Demo.Contact.Web.Controllers
             return View(contact);
         }
 
-        // POST: Home/UpdateContactDepartment
-        [HttpPost]
-        public async Task<IActionResult> UpdateContactDepartment([FromBody] Message jsonPerson)
-        {
-            IEnumerable<Models.Contact> contactsToUpdate = _context.Contact.Where(c => c.DepartmentId == jsonPerson.DepartmentId);
-            contactsToUpdate.ToList().ForEach(i => i.DepartmentName = jsonPerson.DepartmentName);
-            if (ModelState.IsValid)
-            {
-                _context.UpdateRange(contactsToUpdate);
-                await _context.SaveChangesAsync();
-            }
-
-            return Ok();
-        }
-
         // POST: Home/ReassignContacts/{id:int}
         [HttpPost]
         public async Task<IActionResult> ReassignContacts(int id, [FromForm] string newId, [FromForm] string newName)
@@ -154,7 +126,6 @@ namespace Deq.Demo.Contact.Web.Controllers
             IEnumerable<Models.Contact> contactsToUpdate = _context.Contact.Where(c => c.DepartmentId == id.ToString());
             contactsToUpdate.ToList().ForEach(i => {
                 i.DepartmentId = newId.ToString();
-                i.DepartmentName = newName;
             });
 
             return await EditList(contactsToUpdate.Select(c => (c.Id, c)));
@@ -165,10 +136,6 @@ namespace Deq.Demo.Contact.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Models.Contact contact)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{contact.DepartmentId}");
-            HttpClient client = _clientFactory.CreateClient("departments");
-            HttpResponseMessage response = await client.SendAsync(request);
-            contact.DepartmentName = await response.Content.ReadAsStringAsync();
             contact.LastUpdated = DateTime.Now;
 
             if (ModelState.IsValid)
@@ -206,8 +173,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                 ContactNumber = c.contact.ContactNumber,
                 Name = c.contact.Name,
                 Id = c.contact.Id,
-                DepartmentId = c.contact.DepartmentId,
-                DepartmentName = c.contact.DepartmentName
+                DepartmentId = c.contact.DepartmentId
             }).ToArray();
 
             try

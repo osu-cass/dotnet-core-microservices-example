@@ -120,13 +120,27 @@ namespace Deq.Demo.Portal.Web.Controllers
         public async Task<IActionResult> Create([FromBody] Message jsonPerson)
         {
             List<DepartmentContact> departmentContacts = await _context.DepartmentContact.ToListAsync();
+
+            string matchingDepartmentName = null;
+            try
+            {
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{jsonPerson.DepartmentId}");
+                HttpClient client = _clientFactory.CreateClient("departments");
+                HttpResponseMessage response = await client.SendAsync(request);
+                matchingDepartmentName = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception)
+            {
+                // Log
+            }
+
             DepartmentContact departmentContact = new DepartmentContact
             {
                 Id = departmentContacts.Count,
                 ContactId = jsonPerson.Id,
                 ContactName = jsonPerson.Name,
                 DepartmentId = Int32.Parse(jsonPerson.DepartmentId),
-                DepartmentName = jsonPerson.DepartmentName,
+                DepartmentName = matchingDepartmentName ?? "Unknown Department",
                 LastUpdated = DateTime.Now
             };
 
@@ -147,11 +161,24 @@ namespace Deq.Demo.Portal.Web.Controllers
 
             foreach (Message p in jsonPeople)
             {
+                string matchingDepartmentName = null;
+                try
+                {
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"Home/GetDepartmentName/{p.DepartmentId}");
+                    HttpClient client = _clientFactory.CreateClient("departments");
+                    HttpResponseMessage response = await client.SendAsync(request);
+                    matchingDepartmentName = await response.Content.ReadAsStringAsync();
+                }
+                catch (Exception)
+                {
+                    // Log
+                }
+
                 DepartmentContact departmentContact = departmentContacts.Where(c => c.ContactId == p.Id).First();
                 departmentContact.ContactId = p.Id;
                 departmentContact.ContactName = p.Name;
                 departmentContact.DepartmentId = Int32.Parse(p.DepartmentId);
-                departmentContact.DepartmentName = p.DepartmentName;
+                departmentContact.DepartmentName = matchingDepartmentName ?? "Unknown Department";
                 departmentContact.LastUpdated = DateTime.Now;
             }
 
