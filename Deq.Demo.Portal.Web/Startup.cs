@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Deq.Demo.Portal.Web.Models;
 using Deq.Demo.Shared;
 using Microsoft.OpenApi.Models;
+using Deq.Demo.Portal.Web.Repositories;
 
 namespace Deq.Demo.Portal.Web
 {
@@ -41,6 +42,7 @@ namespace Deq.Demo.Portal.Web
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             string connection = @"Server=(localdb)\mssqllocaldb;Database=deqdemodepartmentcontact;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<DepartmentContactContext>(options => options.UseSqlServer(connection));
+            services.AddScoped<DepartmentContactRepository>();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>

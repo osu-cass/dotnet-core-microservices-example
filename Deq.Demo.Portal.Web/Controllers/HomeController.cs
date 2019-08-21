@@ -8,24 +8,25 @@ using Microsoft.EntityFrameworkCore;
 using Deq.Demo.Portal.Web.Models;
 using System.Net.Http;
 using Deq.Demo.Shared;
+using Deq.Demo.Portal.Web.Repositories;
 
 namespace Deq.Demo.Portal.Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly DepartmentContactContext _context;
+        private readonly DepartmentContactRepository _repository;
         private readonly IHttpClientFactory _clientFactory;
 
-        public HomeController(DepartmentContactContext context, IHttpClientFactory clientFactory)
+        public HomeController(DepartmentContactRepository repository, IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
-            _context = context;
+            _repository = repository;
         }
 
         // GET: Home
         public async Task<IActionResult> Index()
         {
-            return View(await _context.DepartmentContact.ToListAsync());
+            return View(await _repository.GetAsync().ConfigureAwait(false));
         }
 
         // GET: Home/Details/{id:int?}
@@ -36,8 +37,7 @@ namespace Deq.Demo.Portal.Web.Controllers
                 return NotFound();
             }
 
-            DepartmentContact departmentContact = await _context.DepartmentContact
-                .FirstOrDefaultAsync(m => m.Id == id);
+            DepartmentContact departmentContact = await _repository.GetByIDAsync(id.Value).ConfigureAwait(false);
             if (departmentContact == null)
             {
                 return NotFound();
@@ -55,8 +55,8 @@ namespace Deq.Demo.Portal.Web.Controllers
         // GET: Home/RefreshData
         public async Task<IActionResult> RefreshData()
         {
-            _context.DepartmentContact.RemoveRange(_context.DepartmentContact);
-            await _context.SaveChangesAsync();
+            _repository.DeleteAll();
+            await _repository.SaveChangesAsync();
 
             List<DepartmentContact> departmentContacts = new List<DepartmentContact>();
 
@@ -103,8 +103,8 @@ namespace Deq.Demo.Portal.Web.Controllers
                 });
             }
 
-            _context.AddRange(departmentContacts);
-            await _context.SaveChangesAsync();
+            _repository.InsertRange(departmentContacts);
+            await _repository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -119,7 +119,7 @@ namespace Deq.Demo.Portal.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Message jsonPerson)
         {
-            List<DepartmentContact> departmentContacts = await _context.DepartmentContact.ToListAsync();
+            List<DepartmentContact> departmentContacts = await _repository.GetAsync().ConfigureAwait(false);
 
             string matchingDepartmentName = null;
             try
@@ -146,8 +146,8 @@ namespace Deq.Demo.Portal.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                _context.Add(departmentContact);
-                await _context.SaveChangesAsync();
+                _repository.Insert(departmentContact);
+                await _repository.SaveChangesAsync();
             }
 
             return Ok();
@@ -157,7 +157,7 @@ namespace Deq.Demo.Portal.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Update([FromBody] Message[] jsonPeople)
         {
-            List<DepartmentContact> departmentContacts = await _context.DepartmentContact.ToListAsync();
+            List<DepartmentContact> departmentContacts = await _repository.GetAsync().ConfigureAwait(false);
 
             foreach (Message p in jsonPeople)
             {
@@ -182,8 +182,8 @@ namespace Deq.Demo.Portal.Web.Controllers
                 departmentContact.LastUpdated = DateTime.Now;
             }
 
-            _context.UpdateRange(departmentContacts);
-            await _context.SaveChangesAsync();
+            _repository.UpdateRange(departmentContacts);
+            await _repository.SaveChangesAsync();
 
             return Ok();
         }
@@ -192,13 +192,13 @@ namespace Deq.Demo.Portal.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateEntryDepartment([FromBody] Message jsonPerson)
         {
-            IEnumerable<DepartmentContact> contactsToUpdate = _context.DepartmentContact.Where(c => c.DepartmentId == Int32.Parse(jsonPerson.DepartmentId));
+            IEnumerable<DepartmentContact> contactsToUpdate = _repository.GetDepartmentContactsOnDepartmentId(Int32.Parse(jsonPerson.DepartmentId));
             contactsToUpdate.ToList().ForEach(c => c.DepartmentName = jsonPerson.DepartmentName);
 
             if (ModelState.IsValid)
             {
-                _context.UpdateRange(contactsToUpdate);
-                await _context.SaveChangesAsync();
+                _repository.UpdateRange(contactsToUpdate);
+                await _repository.SaveChangesAsync();
             }
 
             return Ok();
@@ -208,9 +208,9 @@ namespace Deq.Demo.Portal.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            DepartmentContact departmentContact = _context.DepartmentContact.Where(e => e.ContactId == id).First();
-            _context.DepartmentContact.Remove(departmentContact);
-            await _context.SaveChangesAsync();
+            DepartmentContact departmentContact = _repository.GetDepartmentContactsOnContactId(id);
+            _repository.Delete(departmentContact);
+            await _repository.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
     }
