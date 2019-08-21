@@ -84,7 +84,7 @@ namespace Deq.Demo.Contact.Web.Controllers
                 };
 
                 try {
-                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/Create")
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"api/DepartmentContact")
                     {
                         Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
                     };
@@ -178,7 +178,7 @@ namespace Deq.Demo.Contact.Web.Controllers
 
             try
             {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/Update")
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"api/DepartmentContact")
                 {
                     Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(messageList), Encoding.UTF8, "application/json")
                 };
@@ -230,7 +230,7 @@ namespace Deq.Demo.Contact.Web.Controllers
 
             try
             {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/Delete/{contact.Id}");
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"api/DepartmentContact/{contact.Id}");
                 HttpClient client = _clientFactory.CreateClient("portal");
                 HttpResponseMessage response = await client.SendAsync(request);
             } catch (Exception)

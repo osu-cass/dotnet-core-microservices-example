@@ -170,9 +170,9 @@ namespace Deq.Demo.Dept.Web.Controllers
 
                     try
                     {
-                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"Home/UpdateEntryDepartment")
+                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"api/DepartmentContact")
                         {
-                            Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json")
+                            Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(new List<Message>() { message }), Encoding.UTF8, "application/json")
                         };
                         HttpClient client = _clientFactory.CreateClient("portal");
                         HttpResponseMessage response = await client.SendAsync(request);
